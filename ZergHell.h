@@ -30,4 +30,5 @@ private:
   BWAPI::Unit scout = nullptr;
   BWAPI::Player self;
   std::map<BWAPI::TilePosition, bool> startLocations;
+  int clearBuildDroneCounter = 0;
 };

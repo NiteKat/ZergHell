@@ -129,13 +129,14 @@ void ZergHell::build(BWAPI::UnitType type) {
   if (buildDrone) {
     if (!buildDrone->build(type, buildLocation)) {
       BWAPI::Broodwar->drawCircleMap(buildDrone->getPosition(), 10, BWAPI::Colors::Red, true);
-      std::cout << BWAPI::Broodwar->getLastError() << "\n";
       buildDrone = nullptr;
+      clearBuildDroneCounter = 0;
     }
     else {
       buildDrone->setClientInfo<int>(type, buildingType);
       buildDrone->setClientInfo<int>(buildLocation.x, buildX);
       buildDrone->setClientInfo<int>(buildLocation.y, buildY);
+      clearBuildDroneCounter = 840;
     }
   }
 }
@@ -308,11 +309,20 @@ void ZergHell::checkBuildDrone() {
   }
   // We have a build drone, lets see if we need to do something with it or unassign it.
   else {
+    if (clearBuildDroneCounter)
+      clearBuildDroneCounter--;
     if (buildDrone->getType() != BWAPI::UnitTypes::Zerg_Drone
       || buildDrone->isIdle()
       || buildDrone->getOrder() == BWAPI::Orders::IncompleteBuilding
       || !buildDrone->exists()) {
-      buildDrone = nullptr;
+      clearBuildDroneCounter = 0;
+    }
+    if (!clearBuildDroneCounter) {
+      if (buildDrone->getType() == BWAPI::UnitTypes::Zerg_Drone) {
+        buildDrone->stop();
+        buildDrone = nullptr;
+        clearBuildDroneCounter = 0;
+      }
     }
     //else if (buildDrone->isGatheringMinerals() || buildDrone->isGatheringGas()) {
       //if (!buildDrone->build(buildDrone->getClientInfo<int>(buildingType), BWAPI::TilePosition{ buildDrone->getClientInfo<int>(buildX), buildDrone->getClientInfo<int>(buildY) })) {
